@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # Load data
 @st.cache_data
@@ -54,23 +53,20 @@ else:
 # ---------------- Charts ----------------
 st.subheader("📊 Visualization")
 
-# Avg response time per region
 if not filtered_df.empty:
-    region_group = filtered_df.groupby("Region")["ResponseTime"].mean()
+    # Avg response time per region
+    region_group = filtered_df.groupby("Region")["ResponseTime"].mean().reset_index()
+    st.bar_chart(region_group.set_index("Region"))
 
-    fig, ax = plt.subplots()
-    region_group.plot(kind="bar", ax=ax)
-    ax.set_title("Average Response Time by Region")
-    ax.set_ylabel("Response Time (sec)")
-    st.pyplot(fig)
-
-    # Avg response time per transaction
-    txn_group = filtered_df.groupby("TransactionID")["ResponseTime"].mean().sort_values().head(15)
-    fig2, ax2 = plt.subplots()
-    txn_group.plot(kind="bar", ax=ax2, color="orange")
-    ax2.set_title("Top 15 Transactions by Avg Response Time")
-    ax2.set_ylabel("Response Time (sec)")
-    st.pyplot(fig2)
+    # Avg response time per transaction (top 15)
+    txn_group = (
+        filtered_df.groupby("TransactionID")["ResponseTime"]
+        .mean()
+        .sort_values(ascending=False)
+        .head(15)
+        .reset_index()
+    )
+    st.bar_chart(txn_group.set_index("TransactionID"))
 
 # ---------------- Download ----------------
 st.subheader("📥 Download Data")

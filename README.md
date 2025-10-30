@@ -1,113 +1,25 @@
-import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
+CICS Transaction Health Monitoring Dashboard
 
-# Load data
-@st.cache_data
-def load_data():
-    return pd.read_csv("transactions.csv")
+This project is a Streamlit-based dashboard that simulates CICS transaction monitoring. It randomly samples transactions from a master pool and sends alert emails (via Mailtrap) for Failed and Long-running transactions on every refresh.
 
-df = load_data()
+Files:
+- main.py                     - Streamlit app
+- transactions_master.csv     - Master transaction pool (200 approx)
+- mailtrap_config_template.json - Template for Mailtrap SMTP credentials
+- requirements.txt            - Python dependencies
 
-st.title("CICS Transaction Monitoring Dashboard")
+Setup (GitHub + Streamlit Cloud):
+1. Create a new GitHub repository and upload all files from this folder.
+2. Rename 'mailtrap_config_template.json' to 'mailtrap_config.json' and edit it locally to add your Mailtrap SMTP credentials (do NOT commit this file to GitHub).
+   Example values to replace:
+   - SMTP_USER: your Mailtrap SMTP username
+   - SMTP_PASS: your Mailtrap SMTP password
+3. Deploy on Streamlit Cloud (share.streamlit.io) by connecting to your GitHub repo and selecting main.py.
+4. Open your Mailtrap inbox (My Sandbox) to view generated emails when the app runs.
 
-# ---------------- Filters ----------------
-st.sidebar.header("🔍 Filters")
-regions = st.sidebar.multiselect("Select Region(s)", df["Region"].unique())
-transactions = st.sidebar.text_input("Search Transaction (e.g., TN*, EN01)")
+Local testing (optional):
+- Install dependencies: pip install -r requirements.txt
+- Run app locally: streamlit run main.py
 
-filtered_df = df.copy()
-
-# Apply region filter
-if regions:
-    filtered_df = filtered_df[filtered_df["Region"].isin(regions)]
-
-# Apply transaction filter (supports prefix search like TN*)
-if transactions:
-    if transactions.endswith("*"):
-        prefix = transactions[:-1]
-        filtered_df = filtered_df[filtered_df["TransactionID"].str.startswith(prefix)]
-    else:
-        filtered_df = filtered_df[filtered_df["TransactionID"] == transactions]
-
-# ---------------- Show All Transactions ----------------
-st.subheader("📋 All Transactions (Filtered)")
-st.dataframe(filtered_df)
-
-# ---------------- Failed Transactions ----------------
-st.subheader("🚨 Failed Transactions")
-failed_df = filtered_df[filtered_df["Status"] == "FAILED"]
-if not failed_df.empty:
-    st.dataframe(failed_df)
-else:
-    st.success("No failed transactions detected ✅")
-
-# ---------------- High Response Time ----------------
-st.subheader("⚡ High Response Time Transactions (>= 5 sec)")
-high_resp_df = filtered_df[filtered_df["ResponseTime"] >= 5]
-if not high_resp_df.empty:
-    st.warning("Some transactions are taking longer than expected!")
-    st.dataframe(high_resp_df)
-else:
-    st.success("All transactions are within normal response time.")
-
-# ---------------- Charts ----------------
-st.subheader("📊 Visualization")
-
-# Avg response time per region
-if not filtered_df.empty:
-    region_group = filtered_df.groupby("Region")["ResponseTime"].mean()
-
-    fig, ax = plt.subplots()
-    region_group.plot(kind="bar", ax=ax)
-    ax.set_title("Average Response Time by Region")
-    ax.set_ylabel("Response Time (sec)")
-    st.pyplot(fig)
-
-    # Avg response time per transaction
-    txn_group = filtered_df.groupby("TransactionID")["ResponseTime"].mean().sort_values().head(15)
-    fig2, ax2 = plt.subplots()
-    txn_group.plot(kind="bar", ax=ax2, color="orange")
-    ax2.set_title("Top 15 Transactions by Avg Response Time")
-    ax2.set_ylabel("Response Time (sec)")
-    st.pyplot(fig2)
-
-# ---------------- Download ----------------
-st.subheader("📥 Download Data")
-csv = filtered_df.to_csv(index=False).encode("utf-8")
-st.download_button(
-    label="Download CSV",
-    data=csv,
-    file_name="transactions_report.csv",
-    mime="text/csv"
-)
-
-
-
-
-# CICS Region Transaction Monitor
-
-This project simulates monitoring of CICS regions and running transactions. It includes:
-
-- Filtering by CICS region
-- Prefix-based transaction ID filtering (e.g., TN*)
-- Identifying slow transactions (response time > 200ms)
-- Summary chart of transaction count by region
-
-## How to Run
-
-1. Install dependencies:
-```
-pip install -r requirements.txt
-```
-
-2. Run the Streamlit app:
-```
-streamlit run main.py
-```
-
-3. Visit `http://localhost:8501` in your browser.
-
-## Dataset
-
-A sample dataset `transactions.csv` is provided with mock transactions and regions.
+Security note:
+- Do not commit your real SMTP credentials to GitHub. Use mailtrap_config_template.json as template and keep the real config file private.

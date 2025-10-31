@@ -161,7 +161,7 @@ if not region_group.empty:
 
 # Pie-like chart: status distribution (use bar chart)
 st.subheader("Transaction Status Distribution")
-status_group = filtered["Category"].value_counts().reset_index().rename(columns={'index':'Status','Category':'Count'})
+status_group = filtered["Category"].value_counts().reset_index() status_group.columns = ['Status', 'Count']
 if not status_group.empty:
     st.bar_chart(status_group.set_index("Status"))
 

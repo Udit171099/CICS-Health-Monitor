@@ -1,0 +1,9 @@
+{
+  "SMTP_HOST": "sandbox.smtp.mailtrap.io",
+  "SMTP_PORT": 587,
+  "SMTP_USER": "89b3d8f3961b96",
+  "SMTP_PASS": "ec362d56ba0940",
+  "SENDER_EMAIL": "cics-monitor@demo.com",
+  "RECEIVER_EMAIL": "uditrai.10@gmail.com",
+  "THRESHOLD_SECONDS": 5
+}
